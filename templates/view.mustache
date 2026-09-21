@@ -1,0 +1,75 @@
+{{!
+    This file is part of Moodle - https://moodle.org/
+
+    Moodle is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    Moodle is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
+}}
+{{!
+    @template mod_videosummary/view
+
+    Example context (json):
+    {
+        Aqui tem que criar o context em inglês
+    }
+}}
+<div class="videosummary-view">
+    <div class="d-flex justify-content-between align-items-start gap-3 mb-3">
+        <div>
+            <h2>{{name}}</h2>
+            {{#hasintro}}
+                <div class="videosummary-intro">{{{intro}}}</div>{{/hasintro}}
+        </div>
+        {{#canviewreport}}<a class="btn btn-outline-primary" href="{{{reporturl}}}">{{#str}}
+            viewreport, videosummary{{/str}}</a>{{/canviewreport}}
+    </div>
+
+    {{{playerhtml}}}
+
+    <section class="videosummary-submission card mt-4">
+        <div class="card-body">
+            <div class="d-flex justify-content-between align-items-center gap-2">
+                <h3 class="h4 mb-0">{{#str}}submission, videosummary{{/str}}</h3>
+                {{#cansubmit}}{{^submitted}}<a class="btn btn-primary" href="{{{editurl}}}">{{#str}}
+                    editsummary, videosummary{{/str}}</a>{{/submitted}}{{/cansubmit}}
+            </div>
+            <div class="mt-2"><strong>{{#str}}status, videosummary{{/str}}:</strong> {{statuslabel}}</div>
+            {{#hassubmission}}
+                <div class="mt-3 videosummary-text">{{{summaryhtml}}}</div>
+                <div class="d-flex flex-wrap gap-3 small text-muted mt-2">
+                    <span>{{#str}}wordcount, videosummary{{/str}}: {{wordcount}}</span>
+                    <span>{{#str}}charcount, videosummary{{/str}}: {{charcount}}</span>
+                    <span>{{#str}}referencescount, videosummary{{/str}}: {{referencescount}}</span>
+                </div>
+                {{#hasreferences}}
+                    <h4 class="h5 mt-4">{{#str}}references, videosummary{{/str}}</h4>
+                    <div class="list-group">
+                        {{#references}}
+                            <div class="list-group-item">
+                                <a href="#" data-videosummary-seek="{{starttime}}"><strong>{{range}}</strong></a>
+                                {{#label}} — {{label}}{{/label}}
+                                {{#note}}
+                                    <div class="mt-1">{{note}}</div>{{/note}}
+                            </div>
+                        {{/references}}
+                    </div>
+                {{/hasreferences}}
+                {{#hasgrade}}
+                    <div class="alert alert-success mt-3"><strong>{{#str}}
+                        finalgrade, videosummary{{/str}}:</strong> {{gradedisplay}}</div>
+                    {{#hasfeedback}}
+                        <div class="mt-2">{{{feedbackhtml}}}</div>{{/hasfeedback}}
+                {{/hasgrade}}
+            {{/hassubmission}}
+        </div>
+    </section>
+</div>

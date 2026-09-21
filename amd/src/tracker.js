@@ -1,0 +1,335 @@
+// This file is part of Moodle - http://moodle.org/
+//
+// Moodle is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// Moodle is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+//
+// You should have received a copy of the GNU General Public License
+// along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
+
+/**
+ * Video tracking, resume and timestamp seeking.
+ *
+ * @module mod_videosummary/tracker
+ * @package   mod_videosummary
+ * @copyright 2026 Eduardo Kraus
+ * @license http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ */
+define(['core/ajax', 'core/notification', 'core/str', 'mod_videosummary/player'], function (Ajax, Notification, Str, Player) {
+    const HEARTBEAT = 10;
+
+    class Tracker {
+        constructor(root, config) {
+            this.root = root;
+            this.config = config;
+            this.sequence = 0;
+            this.playing = false;
+            this.start = null;
+            this.end = null;
+            this.last = Number(config.lastposition || 0);
+            this.segments = Array.isArray(config.segments) ? config.segments : [];
+            this.session = this.randomKey();
+            this.queueKey = 'mod_videosummary_queue_' + config.cmid;
+            this.sending = false;
+            this.memoryQueue = [];
+            this.storageAvailable = true;
+        }
+
+        initialise() {
+            return Player.create(this.root, this.config.player).then((player) => {
+                this.player = player;
+                this.bind();
+                this.applyResume();
+                document.dispatchEvent(new CustomEvent('videosummary:timeupdate', {
+                    detail: {time: Number(this.player.getCurrentTime() || this.config.lastposition || 0)}
+                }));
+                this.bindTimestampLinks();
+                this.drain();
+                this.timer = window.setInterval(() => {
+                    if (this.playing) {
+                        this.flush('playing');
+                    }
+                }, HEARTBEAT * 1000);
+                return this;
+            }).catch((error) => {
+                this.message('invalidplayer');
+                throw error;
+            });
+        }
+
+        bind() {
+            this.player.onPlay(() => {
+                this.playing = true;
+                this.last = this.player.getCurrentTime();
+                this.start = this.last;
+                this.end = this.last;
+            });
+            this.player.onTimeUpdate((value) => this.timeUpdate(Number(value)));
+            this.player.onPause(() => {
+                this.playing = false;
+                this.flush('paused');
+            });
+            this.player.onEnded(() => {
+                this.playing = false;
+                this.flush('ended');
+            });
+            this.player.onSeek((current, previous) => this.seek(Number(current), Number(previous || this.last)));
+            document.addEventListener('visibilitychange', () => {
+                if (document.hidden) {
+                    this.flush('hidden');
+                } else {
+                    this.drain();
+                }
+            });
+            window.addEventListener('pagehide', () => this.flush('closed'));
+            window.addEventListener('online', () => this.drain());
+        }
+
+        timeUpdate(current) {
+            document.dispatchEvent(new CustomEvent('videosummary:timeupdate', {detail: {time: current}}));
+            if (!Number.isFinite(current)) {
+                return;
+            }
+            if (!this.playing) {
+                this.last = current;
+                return;
+            }
+            const rate = Math.max(0.25, Number(this.player.getPlaybackRate() || 1));
+            const delta = current - this.last;
+            if (delta >= -0.1 && delta <= Math.max(3, rate * 3)) {
+                if (this.start === null) {
+                    this.start = this.last;
+                }
+                this.end = current;
+            } else if (Math.abs(delta) > 3 && !this.config.allowseek && !this.isWatched(current)) {
+                this.player.seek(this.last);
+                this.message('seekblocked');
+                return;
+            }
+            this.last = current;
+        }
+
+        seek(current, previous) {
+            if (!this.config.allowseek && Math.abs(current - previous) > 0.25 && !this.isWatched(current)) {
+                this.player.seek(previous);
+                this.message('seekblocked');
+                return;
+            }
+            this.flush('seeking');
+            this.last = current;
+            this.start = this.playing ? current : null;
+            this.end = this.start;
+        }
+
+        flush(state) {
+            if (!this.player) {
+                return;
+            }
+            const current = Number(this.player.getCurrentTime() || 0);
+            const start = this.start === null ? current : this.start;
+            const end = this.end === null ? start : Math.max(start, this.end);
+            this.start = this.playing ? current : null;
+            this.end = this.start;
+            const payload = {
+                cmid: Number(this.config.cmid),
+                currentposition: current,
+                duration: Number(this.player.getDuration() || 0),
+                playbackrate: Number(this.player.getPlaybackRate() || 1),
+                segmentstart: start,
+                segmentend: end,
+                sequence: ++this.sequence,
+                sessionkey: this.session,
+                clienttime: Math.floor(Date.now() / 1000),
+                playerstate: state
+            };
+            if (payload.duration <= 0) {
+                return;
+            }
+            const queue = this.readQueue();
+            queue.push(payload);
+            this.writeQueue(queue);
+            this.drain();
+        }
+
+        drain() {
+            if (this.sending || !navigator.onLine) {
+                return;
+            }
+            const queue = this.readQueue();
+            if (!queue.length) {
+                return;
+            }
+            const pending = queue[0];
+            this.sending = true;
+            Ajax.call([{methodname: 'mod_videosummary_update_progress', args: pending}])[0].then((response) => {
+                const next = this.readQueue();
+                const index = next.findIndex((item) => item.sessionkey === pending.sessionkey &&
+                    Number(item.sequence) === Number(pending.sequence));
+                if (index !== -1) {
+                    next.splice(index, 1);
+                }
+                this.writeQueue(next);
+                this.applyResponse(response);
+                this.sending = false;
+                this.drain();
+            }).catch(() => {
+                this.sending = false;
+                this.message('pendingupdates');
+            });
+        }
+
+        applyResponse(response) {
+            try {
+                this.segments = JSON.parse(response.segments || '[]');
+            } catch (error) {
+                this.segments = [];
+            }
+            const percentage = Math.round(Number(response.percent || 0));
+            const percent = this.root.querySelector('[data-region="percent"]');
+            const bar = this.root.querySelector('[data-region="progress-bar"]');
+            if (percent) {
+                percent.textContent = percentage + '%';
+            }
+            if (bar) {
+                bar.style.width = percentage + '%';
+                bar.setAttribute('aria-valuenow', String(percentage));
+            }
+            this.renderTimeline();
+        }
+
+        applyResume() {
+            const position = Number(this.config.lastposition || 0);
+            if (position <= 1 || Number(this.config.resumeplayback) === 0) {
+                return;
+            }
+            if (Number(this.config.resumeplayback) === 1) {
+                this.player.seek(position);
+                return;
+            }
+            Promise.all([
+                Str.get_string('resumequestion', 'videosummary', this.formatTime(position)),
+                Str.get_string('resumeyes', 'videosummary'),
+                Str.get_string('resumeno', 'videosummary')
+            ]).then((strings) => Notification.confirm('', strings[0], strings[1], strings[2],
+                () => this.player.seek(position), () => this.player.seek(0)));
+        }
+
+        bindTimestampLinks() {
+            document.addEventListener('click', (event) => {
+                const link = event.target.closest('[data-videosummary-seek]');
+                if (!link) {
+                    return;
+                }
+                event.preventDefault();
+                const seconds = Number(link.dataset.videosummarySeek || 0);
+                if (Number.isFinite(seconds)) {
+                    this.player.seek(seconds);
+                }
+            });
+        }
+
+        renderTimeline() {
+            const track = this.root.querySelector('[data-region="timeline-track"]');
+            const duration = Number(this.player.getDuration() || 0);
+            if (!track || duration <= 0) {
+                return;
+            }
+            track.replaceChildren();
+            this.segments.forEach((segment) => {
+                if (!Array.isArray(segment) || segment.length < 2) {
+                    return;
+                }
+                const start = Math.max(0, Math.min(duration, Number(segment[0]) || 0));
+                const end = Math.max(start, Math.min(duration, Number(segment[1]) || 0));
+                if (end - start < 0.01) {
+                    return;
+                }
+                const button = document.createElement('button');
+                button.type = 'button';
+                button.className = 'videosummary-timeline__watched';
+                button.style.left = ((start / duration) * 100) + '%';
+                button.style.width = (((end - start) / duration) * 100) + '%';
+                button.dataset.videosummarySeek = String(start);
+                const label = this.formatTime(start) + '–' + this.formatTime(end);
+                button.title = label;
+                button.setAttribute('aria-label', label);
+                track.appendChild(button);
+            });
+        }
+
+        isWatched(position) {
+            return this.segments.some((segment) => position >= Number(segment[0]) - 0.25 &&
+                position <= Number(segment[1]) + 0.25);
+        }
+
+        readQueue() {
+            if (!this.storageAvailable) {
+                return this.memoryQueue.slice();
+            }
+            try {
+                const value = JSON.parse(window.localStorage.getItem(this.queueKey) || '[]');
+                return Array.isArray(value) && value.length ? value : this.memoryQueue.slice();
+            } catch (error) {
+                this.storageAvailable = false;
+                return this.memoryQueue.slice();
+            }
+        }
+
+        writeQueue(queue) {
+            this.memoryQueue = queue.slice();
+            try {
+                window.localStorage.setItem(this.queueKey, JSON.stringify(queue));
+                this.memoryQueue = [];
+                this.storageAvailable = true;
+            } catch (error) {
+                this.storageAvailable = false;
+            }
+        }
+
+        message(key) {
+            Str.get_string(key, 'videosummary').then((message) => {
+                const element = this.root.querySelector('[data-region="tracking-message"]');
+                if (!element) {
+                    return;
+                }
+                element.textContent = message;
+                element.classList.remove('d-none');
+                window.setTimeout(() => element.classList.add('d-none'), 5000);
+            });
+        }
+
+        randomKey() {
+            const bytes = new Uint8Array(18);
+            window.crypto.getRandomValues(bytes);
+            return Array.from(bytes, (byte) => byte.toString(16).padStart(2, '0')).join('');
+        }
+
+        formatTime(seconds) {
+            const value = Math.max(0, Math.round(seconds));
+            const hours = Math.floor(value / 3600);
+            const minutes = Math.floor((value % 3600) / 60);
+            const remaining = value % 60;
+            return (hours ? String(hours).padStart(2, '0') + ':' : '') +
+                String(minutes).padStart(2, '0') + ':' + String(remaining).padStart(2, '0');
+        }
+    }
+
+    const init = () => {
+        document.querySelectorAll('[data-region="videosummary-player"]').forEach((root) => {
+            try {
+                const config = JSON.parse(root.dataset.config || '{}');
+                new Tracker(root, config).initialise();
+            } catch (error) {
+                Notification.exception(error);
+            }
+        });
+    };
+
+    return {init: init};
+});

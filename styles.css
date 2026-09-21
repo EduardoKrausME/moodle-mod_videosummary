@@ -1,0 +1,55 @@
+.videosummary-player__media video,
+.videosummary-player__media iframe {
+    width: 100%;
+    max-width: 100%;
+    aspect-ratio: 16 / 9;
+    background: #000;
+}
+
+.videosummary-player__media iframe {
+    border: 0;
+}
+
+.videosummary-reference-row {
+    display: grid;
+    grid-template-columns: minmax(7rem, 0.7fr) minmax(7rem, 0.7fr) minmax(10rem, 1.4fr) minmax(12rem, 2fr) auto;
+    gap: .5rem;
+    align-items: end;
+    margin-bottom: .75rem;
+}
+
+.videosummary-text {
+    overflow-wrap: anywhere;
+}
+
+@media (max-width: 767.98px) {
+    .videosummary-reference-row {
+        grid-template-columns: 1fr;
+    }
+}
+
+.videosummary-timeline__track {
+    position: relative;
+    height: .9rem;
+    overflow: hidden;
+    border-radius: 999px;
+    background: rgba(0, 0, 0, .12);
+}
+
+.videosummary-timeline__watched {
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    min-width: 2px;
+    padding: 0;
+    border: 0;
+    border-radius: 0;
+    background: currentColor;
+    opacity: .7;
+    cursor: pointer;
+}
+
+.videosummary-timeline__watched:focus-visible {
+    outline: 2px solid currentColor;
+    outline-offset: -2px;
+}
