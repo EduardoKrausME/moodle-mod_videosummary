@@ -52,7 +52,7 @@ class mod_videosummary_mod_form extends moodleform_mod {
         $mform->addRule('name', null, 'required', null, 'client');
         $this->standard_intro_elements();
 
-        $mform->addElement('header', 'sourceheader', get_string('sourceheader', 'videosummary'));
+        $mform->addElement('html', '<h3>' . get_string('sourceheader', 'videosummary') . '</h3>');
         $mform->addElement('select', 'videosource', get_string('videosource', 'videosummary'), $sourceoptions);
         $mform->setType('videosource', PARAM_PLUGIN);
         $mform->setDefault('videosource', $sources->get_default_source());
@@ -60,7 +60,6 @@ class mod_videosummary_mod_form extends moodleform_mod {
 
         $mform->addElement('filemanager', 'poster', get_string('poster', 'videosummary'), null, [
             'subdirs' => 0,
-            'maxfiles' => 1,
             'accepted_types' => ['image'],
         ]);
         $noposter = $sources->get_sources_without_poster();
@@ -68,7 +67,7 @@ class mod_videosummary_mod_form extends moodleform_mod {
             $mform->hideIf('poster', 'videosource', 'in', $noposter);
         }
 
-        $mform->addElement('header', 'playbackheader', get_string('playbackheader', 'videosummary'));
+        $mform->addElement('html', '<h3>' . get_string('playbackheader', 'videosummary') . '</h3>');
         $mform->addElement('select', 'resumeplayback', get_string('resumeplayback', 'videosummary'), [
             1 => get_string('resumeautomatic', 'videosummary'),
             2 => get_string('resumeask', 'videosummary'),
@@ -78,7 +77,7 @@ class mod_videosummary_mod_form extends moodleform_mod {
         $mform->addElement('selectyesno', 'allowseek', get_string('allowseek', 'videosummary'));
         $mform->setDefault('allowseek', 1);
 
-        $mform->addElement('header', 'summarysettings', get_string('summarysettings', 'videosummary'));
+        $mform->addElement('html', '<h3>' . get_string('summarysettings', 'videosummary') . '</h3>');
         $formats = [
             'free' => get_string('format_free', 'videosummary'),
             'maxwords' => get_string('format_maxwords', 'videosummary'),
@@ -168,6 +167,15 @@ class mod_videosummary_mod_form extends moodleform_mod {
         }
         if ((float)($data['grade'] ?? 0) < 0) {
             $errors['grade'] = get_string('invaliddata', 'error');
+        }
+        foreach (['poster'] as $field) {
+            $draftid = (int)($data[$field] ?? 0);
+            if ($draftid > 0) {
+                $draftinfo = file_get_draft_area_info($draftid);
+                if ((int)$draftinfo['filecount'] > 1) {
+                    $errors[$field] = get_string('errormaxfiles', 'videosummary');
+                }
+            }
         }
         return $errors;
     }

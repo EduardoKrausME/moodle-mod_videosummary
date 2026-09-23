@@ -35,6 +35,7 @@ $string['charlimiterror'] = 'The summary has {$a->count} characters; the maximum
 $string['completiondetail:percent'] = 'Watch at least {$a}% of the video';
 $string['completiondetail:summary'] = 'Submit the final summary';
 $string['completionpercent'] = 'Required watched percentage';
+$string['completionrules'] = '';
 $string['completionsummary'] = 'Require final summary submission';
 $string['criteriascoreinvalid'] = 'Criterion scores must be between 0 and 100.';
 $string['criterion'] = 'Criterion';
@@ -44,6 +45,7 @@ Comprehension
 Use of video evidence';
 $string['draftsaved'] = 'Draft saved.';
 $string['editsummary'] = 'Write or edit summary';
+$string['errormaxfiles'] = 'Only one file can be uploaded.';
 $string['eventcoursemoduleviewed'] = 'Video Summary viewed';
 $string['eventsummarygraded'] = 'Video summary graded';
 $string['eventsummarysubmitted'] = 'Video summary submitted';

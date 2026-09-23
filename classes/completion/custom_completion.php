@@ -39,9 +39,7 @@ class custom_completion extends activity_custom_completion {
     public function get_state(string $rule): int {
         global $DB;
 
-        $cm = $this->get_cm();
-        $userid = $this->get_user_id();
-        $activity = $DB->get_record('videosummary', ['id' => $cm->instance], '*', MUST_EXIST);
+        $activity = $DB->get_record('videosummary', ['id' => $this->cm->instance], '*', MUST_EXIST);
 
         if ($rule === 'completionpercent') {
             if ((int)$activity->completionpercent <= 0) {
@@ -49,7 +47,7 @@ class custom_completion extends activity_custom_completion {
             }
             $percent = (float)$DB->get_field('videosummary_progress', 'percent', [
                 'videosummaryid' => $activity->id,
-                'userid' => $userid,
+                'userid' => $this->userid,
             ]);
             return $percent >= (float)$activity->completionpercent ? COMPLETION_COMPLETE : COMPLETION_INCOMPLETE;
         }
@@ -59,7 +57,7 @@ class custom_completion extends activity_custom_completion {
             }
             return $DB->record_exists('videosummary_submissions', [
                 'videosummaryid' => $activity->id,
-                'userid' => $userid,
+                'userid' => $this->userid,
                 'status' => 'submitted',
             ]) ? COMPLETION_COMPLETE : COMPLETION_INCOMPLETE;
         }
@@ -72,7 +70,7 @@ class custom_completion extends activity_custom_completion {
      * @return array Return value.
      */
     public static function get_defined_custom_rules(): array {
-        // TODO: Implement get_defined_custom_rules() method.
+        return ['completionpercent', 'completionsummary'];
     }
 
     /**
@@ -81,7 +79,12 @@ class custom_completion extends activity_custom_completion {
      * @return array Return value.
      */
     public function get_custom_rule_descriptions(): array {
-        // TODO: Implement get_custom_rule_descriptions() method.
+        global $DB;
+        $activity = $DB->get_record('videosummary', ['id' => $this->cm->instance], '*', MUST_EXIST);
+        return [
+            'completionpercent' => get_string('completiondetail:percent', 'videosummary', $activity->completionpercent),
+            'completionsummary' => get_string('completiondetail:summary', 'videosummary'),
+        ];
     }
 
     /**
@@ -90,6 +93,6 @@ class custom_completion extends activity_custom_completion {
      * @return array Return value.
      */
     public function get_sort_order(): array {
-        // TODO: Implement get_sort_order() method.
+        return ['completionpercent', 'completionsummary'];
     }
 }

@@ -59,7 +59,7 @@ class plugin extends plugin_base {
      * @return void Return value.
      */
     public function add_form_elements(MoodleQuickForm $mform, string $sourcefield): void {
-        $options = ['subdirs' => 0, 'maxfiles' => 1, 'accepted_types' => ['.mp4', '.webm', '.ogv', '.m4v', '.mov']];
+        $options = ['subdirs' => 0, 'accepted_types' => ['.mp4', '.webm', '.ogv', '.m4v', '.mov']];
         $mform->addElement('filemanager', 'videofile', get_string('videofile', 'videosummarysource_upload'), null, $options);
         $mform->hideIf('videofile', $sourcefield, 'neq', 'upload');
     }
@@ -79,6 +79,9 @@ class plugin extends plugin_base {
         $info = $draftid > 0 ? file_get_draft_area_info($draftid) : ['filecount' => 0];
         if (empty($info['filecount'])) {
             return ['videofile' => get_string('required')];
+        }
+        if ((int)$info['filecount'] > 1) {
+            return ['videofile' => get_string('errormaxfiles', 'videosummary')];
         }
         return [];
     }
