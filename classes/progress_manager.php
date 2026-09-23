@@ -43,7 +43,7 @@ class progress_manager {
      * @return stdClass
      */
     public function update(stdClass $activity, int $userid, float $duration, float $position,
-                           float    $start, float $end, float $playbackrate = 1.0): stdClass {
+                           float $start, float $end, float $playbackrate = 1.0): stdClass {
         global $DB;
 
         $now = time();
