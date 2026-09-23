@@ -24,8 +24,8 @@
 
 defined('MOODLE_INTERNAL') || die();
 $plugin->component = 'videosummarysource_url';
-$plugin->version = 2026092000;
-$plugin->release = '1.0.0';
+$plugin->version = 2026092300;
+$plugin->release = '1.0.1';
 $plugin->requires = 2024042200;
-$plugin->dependencies = ['mod_videosummary' => 2026092000];
+$plugin->dependencies = ['mod_videosummary' => 2026092300];
 $plugin->maturity = MATURITY_STABLE;
