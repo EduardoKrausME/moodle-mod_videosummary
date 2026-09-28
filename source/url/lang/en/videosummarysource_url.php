@@ -29,3 +29,4 @@ $string['videourl'] = 'Direct video URL';
 $string['privacy:metadata:remote_video'] = 'When a direct video URL is displayed, the learner\'s browser connects to the configured remote video server.';
 $string['privacy:metadata:remote_video:ipaddress'] = 'The learner\'s IP address is exposed to the remote video server as part of the browser connection.';
 $string['privacy:metadata:remote_video:useragent'] = 'The learner\'s browser user-agent may be sent to the remote video server when loading the video.';
+$string['privacy:metadata'] = 'The direct URL source does not store personal data itself; loading a remote video may expose connection metadata to that service.';
