@@ -25,8 +25,8 @@
 defined('MOODLE_INTERNAL') || die();
 $string['invalidurl'] = 'Enter a valid Vimeo URL.';
 $string['pluginname'] = 'Vimeo';
-$string['videourl'] = 'Vimeo URL';
+$string['privacy:metadata'] = 'The Vimeo source does not store personal data itself; loading the embedded player exposes connection metadata to Vimeo.';
 $string['privacy:metadata:vimeo'] = 'When a Vimeo video is displayed, the learner\'s browser connects to Vimeo to load and play the video.';
 $string['privacy:metadata:vimeo:ipaddress'] = 'The learner\'s IP address is exposed to Vimeo as part of the browser connection.';
 $string['privacy:metadata:vimeo:useragent'] = 'The learner\'s browser user-agent may be sent to Vimeo when loading the embedded player.';
-$string['privacy:metadata'] = 'The Vimeo source does not store personal data itself; loading the embedded player exposes connection metadata to Vimeo.';
+$string['videourl'] = 'Vimeo URL';
