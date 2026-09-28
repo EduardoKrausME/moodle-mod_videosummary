@@ -24,5 +24,5 @@
 
 defined('MOODLE_INTERNAL') || die();
 $string['pluginname'] = 'Uploaded video';
-$string['videofile'] = 'Video file';
 $string['privacy:metadata'] = 'The uploaded video source subplugin does not store any personal data of its own.';
+$string['videofile'] = 'Video file';
