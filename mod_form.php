@@ -187,12 +187,27 @@ class mod_videosummary_mod_form extends moodleform_mod {
      */
     public function add_completion_rules(): array {
         $mform = $this->_form;
-        $mform->addElement('text', 'completionpercent', get_string('completionpercent', 'videosummary'), ['size' => 5]);
-        $mform->setType('completionpercent', PARAM_INT);
-        $mform->setDefault('completionpercent', 80);
-        $mform->addElement('selectyesno', 'completionsummary', get_string('completionsummary', 'videosummary'));
-        $mform->setDefault('completionsummary', 1);
-        return ['completionpercent', 'completionsummary'];
+        $suffix = $this->get_suffix();
+
+        $completionpercent = 'completionpercent' . $suffix;
+        $mform->addElement(
+            'text',
+            $completionpercent,
+            get_string('completionpercent', 'videosummary'),
+            ['size' => 5]
+        );
+        $mform->setType($completionpercent, PARAM_INT);
+        $mform->setDefault($completionpercent, 80);
+
+        $completionsummary = 'completionsummary' . $suffix;
+        $mform->addElement(
+            'selectyesno',
+            $completionsummary,
+            get_string('completionsummary', 'videosummary')
+        );
+        $mform->setDefault($completionsummary, 1);
+
+        return [$completionpercent, $completionsummary];
     }
 
     /**
@@ -202,6 +217,33 @@ class mod_videosummary_mod_form extends moodleform_mod {
      * @return bool Return value.
      */
     public function completion_rule_enabled($data): bool {
-        return !empty($data['completionpercent']) || !empty($data['completionsummary']);
+        $suffix = $this->get_suffix();
+
+        return !empty($data['completionpercent' . $suffix]) ||
+            !empty($data['completionsummary' . $suffix]);
+    }
+
+    /**
+     * Allows completion data to be normalised after submission.
+     *
+     * This method is also called by the default and bulk activity completion forms,
+     * where completion element names include the module-specific suffix.
+     *
+     * @param stdClass $data Form data.
+     * @return void
+     */
+    public function data_postprocessing($data): void {
+        parent::data_postprocessing($data);
+
+        $suffix = $this->get_suffix();
+        $completionpercent = 'completionpercent' . $suffix;
+        $completionsummary = 'completionsummary' . $suffix;
+
+        if (isset($data->{$completionpercent})) {
+            $data->{$completionpercent} = (int)$data->{$completionpercent};
+        }
+        if (isset($data->{$completionsummary})) {
+            $data->{$completionsummary} = (int)$data->{$completionsummary};
+        }
     }
 }

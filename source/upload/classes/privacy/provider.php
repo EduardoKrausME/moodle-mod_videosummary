@@ -15,17 +15,25 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 /**
- * videosummarysource_vimeo.php
+ * Privacy provider for the uploaded video source.
  *
- * @package   videosummarysource_vimeo
- * @copyright 2026 Eduardo Kraus {@link https://eduardokraus.com}
+ * @package   videosummarysource_upload
+ * @copyright 2026 Eduardo Kraus
  * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
-defined('MOODLE_INTERNAL') || die();
-$string['invalidurl'] = 'Enter a valid Vimeo URL.';
-$string['pluginname'] = 'Vimeo';
-$string['videourl'] = 'Vimeo URL';
-$string['privacy:metadata:vimeo'] = 'When a Vimeo video is displayed, the learner\'s browser connects to Vimeo to load and play the video.';
-$string['privacy:metadata:vimeo:ipaddress'] = 'The learner\'s IP address is exposed to Vimeo as part of the browser connection.';
-$string['privacy:metadata:vimeo:useragent'] = 'The learner\'s browser user-agent may be sent to Vimeo when loading the embedded player.';
+namespace videosummarysource_upload\privacy;
+
+/**
+ * Privacy provider for the uploaded video source.
+ */
+class provider implements \core_privacy\local\metadata\null_provider {
+    /**
+     * Returns the language string explaining why this plugin stores no personal data.
+     *
+     * @return string
+     */
+    public static function get_reason(): string {
+        return 'privacy:metadata';
+    }
+}

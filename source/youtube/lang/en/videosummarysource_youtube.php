@@ -26,3 +26,6 @@ defined('MOODLE_INTERNAL') || die();
 $string['invalidurl'] = 'Enter a valid YouTube URL.';
 $string['pluginname'] = 'YouTube';
 $string['videourl'] = 'YouTube URL';
+$string['privacy:metadata:youtube'] = 'When a YouTube video is displayed, the learner\'s browser connects to YouTube to load and play the video.';
+$string['privacy:metadata:youtube:ipaddress'] = 'The learner\'s IP address is exposed to YouTube as part of the browser connection.';
+$string['privacy:metadata:youtube:useragent'] = 'The learner\'s browser user-agent may be sent to YouTube when loading the embedded player.';
