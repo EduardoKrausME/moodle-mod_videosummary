@@ -22,7 +22,7 @@
  * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
-defined('MOODLE_INTERNAL') || die();
+defined('MOODLE_INTERNAL') || die;
 $string['invalidurl'] = 'Enter a valid HTTP or HTTPS video URL.';
 $string['pluginname'] = 'Direct URL';
 $string['privacy:metadata'] = 'The direct URL source does not store personal data itself; loading a remote video may expose connection metadata to that service.';

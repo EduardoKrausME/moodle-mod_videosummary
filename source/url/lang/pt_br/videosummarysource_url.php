@@ -22,7 +22,7 @@
  * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
-defined('MOODLE_INTERNAL') || die();
+defined('MOODLE_INTERNAL') || die;
 $string['invalidurl'] = 'Informe uma URL HTTP ou HTTPS válida.';
 $string['pluginname'] = 'URL direta';
 $string['videourl'] = 'URL direta do vídeo';

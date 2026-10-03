@@ -22,7 +22,7 @@
  * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
-defined('MOODLE_INTERNAL') || die();
+defined('MOODLE_INTERNAL') || die;
 $string['invalidurl'] = 'Enter a valid YouTube URL.';
 $string['pluginname'] = 'YouTube';
 $string['privacy:metadata'] = 'The YouTube source does not store personal data itself; loading the embedded player exposes connection metadata to YouTube.';
