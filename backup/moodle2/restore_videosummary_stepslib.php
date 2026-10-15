@@ -149,5 +149,6 @@ class restore_videosummary_activity_structure_step extends restore_activity_stru
     protected function after_execute(): void {
         $this->add_related_files('mod_videosummary', 'poster', null);
         $this->add_related_files('mod_videosummary', 'video', null);
+        $this->add_related_files('local_video_bridge', 'video', null);
     }
 }

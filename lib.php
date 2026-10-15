@@ -22,7 +22,8 @@
  * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
-use mod_videosummary\source\manager as source_manager;
+use local_video_bridge\source\manager as source_manager;
+use mod_videosummary\source\legacy_files;
 
 /**
  * Declares supported Moodle features.
@@ -98,6 +99,9 @@ function videosummary_update_instance(stdClass $data, ?mod_videosummary_mod_form
     $context = context_module::instance($data->coursemodule);
     videosummary_save_poster($data, $context);
     (new source_manager())->save_files($data, $context, $previoussource);
+    if ($previoussource === 'upload' && $data->videosource !== 'upload') {
+        get_file_storage()->delete_area_files($context->id, 'mod_videosummary', 'video');
+    }
     videosummary_grade_item_update($data);
     return $result;
 }
@@ -360,12 +364,19 @@ function videosummary_get_completion_state($course, $cm, int $userid, bool $type
 function videosummary_render_player(stdClass $activity, $cm, context_module $context, ?stdClass $progress = null): string {
     global $OUTPUT;
 
+    // Existing upload activities stored files under the old component name.
+    if ($activity->videosource === 'upload') {
+        legacy_files::migrate($context);
+    }
+
     $manager = new source_manager();
-    $player = $manager->get_player_config($activity, $context);
+    // Summary retains its own progress records; do not start a second Bridge tracker.
+    $player = $manager->get_player_config($activity, $context, \local_video_bridge\analytics::LEVEL_OFF);
+    unset($player['progress']);
     $player['poster'] = videosummary_get_poster_url($context);
-    $template = $player['template'];
-    unset($player['template']);
-    $sourcehtml = $OUTPUT->render_from_template($template, $player);
+    $template = $player['sourcetemplate'];
+    unset($player['sourcetemplate']);
+    $sourcehtml = $OUTPUT->render_from_template($template, ['player' => $player]);
 
     $segments = [];
     if ($progress && !empty($progress->segments)) {

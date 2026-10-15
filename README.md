@@ -7,8 +7,9 @@ of the summary to exact moments or intervals in the video. Teachers can require 
 set word/character limits, choose a summary structure, grade using simple criteria, and review a course report
 containing watched percentage, draft/submission state, references, grade, and status.
 
-Bundled video sources follow the same subplugin architecture used by Video Progress: protected upload, direct URL,
-YouTube, and Vimeo.
+Video sources are supplied by the required `local_video_bridge` plugin and its `videoprogresssource_*` adapters.
+Only adapters with reliable tracking and seeking are offered because summary completion and timestamp references
+require these capabilities. Providers and their playback assets are no longer bundled in this activity.
 
 ## Main features
 
@@ -26,11 +27,14 @@ YouTube, and Vimeo.
 
 ## Requirements
 
-Moodle 4.4 or later (2024042200).
+Moodle 4.4 or later (2024042200), and the `local_video_bridge` plugin with its source subplugins.
 
 ## Installation
 
-Install the directory as `mod/videosummary`, then visit Site administration > Notifications.
+Install `local_video_bridge` at `local/video_bridge` before installing or upgrading `mod/videosummary`,
+then visit Site administration > Notifications. Existing protected uploads are copied on first access
+from the legacy Video Summary file area to the Video Bridge file area, leaving the originals intact
+until the activity is updated or deleted. Backups retain both file areas for compatibility.
 
 ## License
 

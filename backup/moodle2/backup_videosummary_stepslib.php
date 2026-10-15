@@ -82,6 +82,7 @@ class backup_videosummary_activity_structure_step extends backup_activity_struct
         $submission->annotate_ids('user', 'grader');
         $activity->annotate_files('mod_videosummary', 'poster', null);
         $activity->annotate_files('mod_videosummary', 'video', null);
+        $activity->annotate_files('local_video_bridge', 'video', null);
 
         return $this->prepare_activity_structure($activity);
     }

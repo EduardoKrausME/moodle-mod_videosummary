@@ -1,8 +1,0 @@
-{
-  "subplugintypes": {
-    "videosummarysource": "source"
-  },
-  "plugintypes": {
-    "videosummarysource": "mod/videosummary/source"
-  }
-}

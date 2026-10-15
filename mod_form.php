@@ -27,7 +27,8 @@ defined('MOODLE_INTERNAL') || die;
 global $CFG;
 require_once($CFG->dirroot . '/course/moodleform_mod.php');
 
-use mod_videosummary\source\manager as source_manager;
+use local_video_bridge\source\manager as source_manager;
+use mod_videosummary\source\legacy_files;
 
 /**
  * Class mod_videosummary_mod_form.
@@ -40,8 +41,12 @@ class mod_videosummary_mod_form extends moodleform_mod {
      */
     public function definition(): void {
         $mform = $this->_form;
+        if (!class_exists(source_manager::class)) {
+            throw new moodle_exception('sourcepluginmissing', 'videosummary', '', 'local_video_bridge');
+        }
         $sources = new source_manager();
-        $sourceoptions = $sources->get_options();
+        // Video summaries require measurable playback and timestamp navigation.
+        $sourceoptions = $sources->get_options(['tracking', 'seeking']);
         if (!$sourceoptions) {
             throw new moodle_exception('sourcepluginmissing', 'videosummary', '', 'none');
         }
@@ -55,7 +60,7 @@ class mod_videosummary_mod_form extends moodleform_mod {
         $mform->addElement('html', '<h3>' . get_string('sourceheader', 'videosummary') . '</h3>');
         $mform->addElement('select', 'videosource', get_string('videosource', 'videosummary'), $sourceoptions);
         $mform->setType('videosource', PARAM_PLUGIN);
-        $mform->setDefault('videosource', $sources->get_default_source());
+        $mform->setDefault('videosource', (string)array_key_first($sourceoptions));
         $sources->add_form_elements($mform, 'videosource');
 
         $mform->addElement('filemanager', 'poster', get_string('poster', 'videosummary'), null, [
@@ -140,6 +145,9 @@ class mod_videosummary_mod_form extends moodleform_mod {
             'accepted_types' => ['image'],
         ]);
         $defaultvalues['poster'] = $draftid;
+        if (($defaultvalues['videosource'] ?? '') === 'upload') {
+            legacy_files::migrate($context);
+        }
         (new source_manager())->prepare_form_data($defaultvalues, $context);
     }
 
