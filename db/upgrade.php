@@ -29,5 +29,17 @@
  * @return bool
  */
 function xmldb_videosummary_upgrade(int $oldversion): bool {
+    global $DB;
+
+    if ($oldversion < 2026101500) {
+        // Remove configuration belonging to the retired videosummarysource subplugins.
+        // Escape the underscore to match the literal component prefix, not a SQL wildcard.
+        $like = $DB->sql_like('plugin', ':sourceprefix');
+        $sourceprefix = $DB->sql_like_escape('videosummarysource_') . '%';
+        $DB->delete_records_select('config_plugins', $like, ['sourceprefix' => $sourceprefix]);
+
+        upgrade_mod_savepoint(true, 2026101500, 'videosummary');
+    }
+
     return true;
 }
