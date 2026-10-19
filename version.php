@@ -29,3 +29,6 @@ $plugin->release = '1.0.8';
 $plugin->component = 'mod_videosummary';
 $plugin->requires = 2024042200;
 $plugin->maturity = MATURITY_STABLE;
+$plugin->dependencies = [
+    'local_video_bridge' => 2026100600,
+];
