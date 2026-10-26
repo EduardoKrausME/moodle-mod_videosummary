@@ -27,9 +27,9 @@ require these capabilities. Providers and their playback assets are no longer bu
 
 ## Requirements
 
-Video Summary requires **Moodle 4.5 or later** because it depends on [Moodle Video Bridge (`local_video_bridge`)](https://github.com/EduardoKrausME/moodle-local_video_bridge). Video Bridge provides the required video sources, playback integration and tracking, and must be installed in `local/video_bridge` before installing or upgrading this activity. Video Bridge currently also requires `local_ai_bridge`.
+Video Summary requires **Moodle 4.5 or later** and [Moodle Video Bridge (`local_video_bridge`)](https://github.com/EduardoKrausME/moodle-local_video_bridge) for sources, playback and tracking. Video Bridge also depends on `local_ai_bridge`.
 
-**Important:** `mod_videosummary/version.php` does not currently declare `local_video_bridge` in `$plugin->dependencies`. Moodle may therefore not detect a missing Video Bridge automatically; administrators must verify that it is installed and compatible.
+The activity declares `local_video_bridge` as a required dependency in `version.php`.
 
 ## License
 
