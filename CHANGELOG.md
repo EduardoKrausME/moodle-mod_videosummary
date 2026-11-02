@@ -2,6 +2,14 @@
 
 This changelog documents only the two most recent published GitHub releases. Each entry describes verified changes relative to its immediately preceding published release. Changes made later on `master` are excluded.
 
+## 1.0.9 - 2026-11-01
+
+- Clarified the Video Bridge dependency and removed installation walkthroughs from the README.
+- Regenerated the player AMD build and updated the release workflow.
+- Updated historical release documentation; no additional feature implementation was identified in this tag comparison.
+
+**Full comparison:** [1.0.8...1.0.9](https://github.com/EduardoKrausME/moodle-mod_videosummary/compare/1.0.8...1.0.9)
+
 ## 1.0.8 - 2026-10-15
 
 ### Changed
